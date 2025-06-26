@@ -37,7 +37,8 @@ class BluetoothService: NSObject, ObservableObject {
         peripheralStatus = .scanning
         centralManager.scanForPeripherals(withServices: nil)
     }
-    
+
+    // logic for connection to peripheral button
     func connectToPeripheral(_ peripheral: CBPeripheral) {
         capacitanceSensorPeripheral = peripheral
         peripheralStatus = .connecting
@@ -49,7 +50,7 @@ class BluetoothService: NSObject, ObservableObject {
             centralManager.cancelPeripheralConnection(peripheral)
         }
     }
-    
+    // conditional to rescan for peripherals
     func rescanPeripherals() {
         discoveredPeripherals.removeAll()
         centralManager?.stopScan()
@@ -58,7 +59,7 @@ class BluetoothService: NSObject, ObservableObject {
 
 
 }
-
+// scans for available peripheral devices 
 extension BluetoothService: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         if central.state == .poweredOn {
@@ -76,12 +77,9 @@ extension BluetoothService: CBCentralManagerDelegate {
             }
         
         
-//        if peripheral.name == "Temperature Beacon" {
-//            print("Discovered \(peripheral.name ?? "no name")")
-//            capacitanceSensorPeripheral = peripheral
-//            centralManager.connect(capacitanceSensorPeripheral!)
-//            peripheralStatus = .connecting
-//        }
+
+
+        
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -105,6 +103,7 @@ extension BluetoothService: CBCentralManagerDelegate {
 
 extension BluetoothService: CBPeripheralDelegate {
 
+    // checks for matching service and characteristic UUID
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         for service in peripheral.services ?? [] {
             if service.uuid == dataService {
@@ -130,8 +129,7 @@ extension BluetoothService: CBPeripheralDelegate {
             print("Notification state for \(characteristic.uuid): \(characteristic.isNotifying)")
     }
     
-    
-    // there is likely a notify/read setting that needs to be fixed before values can be updated
+
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if characteristic.uuid == capacitanceCharacteristic {
@@ -140,7 +138,6 @@ extension BluetoothService: CBPeripheralDelegate {
                 return
             }
 
-//            let sensorData: Int = data.withUnsafeBytes { $0.pointee }
             let sensorData: UInt16 = data.withUnsafeBytes {
                 $0.load(as: UInt16.self)
             }
